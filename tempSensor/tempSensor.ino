@@ -2,8 +2,7 @@
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
-
-// these are the pins we use 
+ 
 #define BMP_SCK 13
 #define BMP_MISO 12
 #define BMP_MOSI 11 
@@ -12,21 +11,26 @@
 Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
 
 void setup() {
+  
   Serial.begin(9600);
   if (!bme.begin()) {  
     Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
     while (1);
   }
   delay(2000);
+
 }
 
 void loop() {
+  
   getMetrology();
+
 }
 
 void getMetrology(){
-    //make more specific readings
-    //call at more specific times & average values   
+    
+    //@TODO: make more precise readings and average  
+    
     Serial.print(F("Temperature = "));
     Serial.print(bme.readTemperature());
     Serial.println(" *C");
@@ -38,6 +42,7 @@ void getMetrology(){
     Serial.println(" m");
     Serial.println();
     delay(2000);
+
 }
 
 
