@@ -1,47 +1,43 @@
 #include <Wire.h>
-#include "SPI.h" //Why? Because library supports SPI and I2C connection
+#include <SPI.h>
 #include <Adafruit_Sensor.h>
-#include "Adafruit_BMP280.h"
+#include <Adafruit_BMP280.h>
 
-//Setup connection of the sensor
-Adafruit_BMP280 bmp; // I2C
-//For SPI connection!
-//#define BMP_SCK 13
-//#define BMP_MISO 12
-//#define BMP_MOSI 11 
-//#define BMP_CS 10
-//Adafruit_BMP280 bme(BMP_CS); // hardware SPI
-//Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
+// these are the pins we use 
+#define BMP_SCK 13
+#define BMP_MISO 12
+#define BMP_MOSI 11 
+#define BMP_CS 10
 
-//Variables
-float pressure;   //To store the barometric pressure (Pa)
-float temperature;  //To store the temperature (oC)
-int altimeter;    //To store the altimeter (m) (you can also use it as a float variable)
+Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
 
 void setup() {
-  bmp.begin();    //Begin the sensor
-  Serial.begin(9600); //Begin serial communication at 9600bps
-  Serial.println("Log for temperature:");
+  Serial.begin(9600);
+  if (!bme.begin()) {  
+    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+    while (1);
+  }
+  delay(2000);
 }
 
 void loop() {
-  //Read values from the sensor:
-  pressure = bmp.readPressure();
-  temperature = bmp.readTemperature();
-  altimeter = bmp.readAltitude (1050.35); //Change the "1050.35" to your city current barrometric pressure (https://www.wunderground.com)
-  
-  //Print values to serial monitor:
-    Serial.print(F("Pressure: "));
-    Serial.print(pressure);
-    Serial.print(" Pa");
-    Serial.print("\t");
-    Serial.print(("Temp: "));
-    Serial.print(temperature);
-    Serial.print(" oC");
-    Serial.print("\t");
-    Serial.print("Altimeter: ");
-    Serial.print(altimeter); // this should be adjusted to your local forcase
-    Serial.println(" m");
-    
-    delay(5000); //Update every 5 sec
+  getMetrology();
 }
+
+void getMetrology(){
+    //make more specific readings
+    //call at more specific times & average values   
+    Serial.print(F("Temperature = "));
+    Serial.print(bme.readTemperature());
+    Serial.println(" *C");
+    Serial.print(F("Pressure = "));
+    Serial.print(bme.readPressure());
+    Serial.println(" Pa");
+    Serial.print(F("Approx altitude = "));
+    Serial.print(bme.readAltitude(1013.25)); // this should be adjusted to your local forcase
+    Serial.println(" m");
+    Serial.println();
+    delay(2000);
+}
+
+
