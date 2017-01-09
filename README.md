@@ -1,7 +1,29 @@
 # CatSat_TU_Repo
 January Course for CatSat Launch
+https://www.arduino.cc/en/uploads/Main/ArduinoNano30Schematic.pdf
 
-#tempSensor 
-Includes two zip libraries 
-1. Adafruit_BMP280_Library-master
-2. Adafruit_Sensor-master
+
+# General Setup 
+
+Libraries required 
+```
+https://github.com/adafruit/Adafruit_Sensor
+```
+### General Arduino Programming
+
+Follows the style pattern 
+
+```
+#libraries & dependencies
+
+//declare used pins 
+
+setup () {
+//calibrate sensor 
+
+}
+loop () {
+//repeat action
+}
+
+```
