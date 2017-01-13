@@ -11,19 +11,13 @@ https://github.com/adafruit/Adafruit_Sensor
 ```
 ### General Arduino Programming
 
-Follows the style pattern 
+Final Script for use is in the final repository 
 
-```
-#libraries & dependencies
+### Calendar of important designs
 
-//declare used pins 
+12 January 14:00 (Updated WBS, Selection of concept)
 
-setup () {
-//calibrate sensor 
+16 January 15:00 (Preliminary design of all subsystems, Testing plan)
 
-}
-loop () {
-//repeat action
-}
+19 January 11:00 (Detailed design of all subsystem)
 
-```
