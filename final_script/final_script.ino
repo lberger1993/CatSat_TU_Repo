@@ -1,3 +1,5 @@
+// @ToDO: weigh each piece, place on template
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -5,7 +7,7 @@
 
 /* MPU CONSTANTS */
 const int MPU_ADDR=0x68;
-const byte PWR_MGMT_1=0x68;
+const byte PWR_MGMT_1=0x6b;
 const byte WHO_AM_I=0x75;
 const byte MPU_ACX_1=0x3B;
 const byte MPU_ACY_1=0x3D;
@@ -25,7 +27,7 @@ float gyro[3];
 float baro[3];
 
 /* tempLM35 sensor */
-const int TEMPLM35_SENSOR=A1;
+const int TEMPLM35_SENSOR=A0;
 
 /* tempLM35 VARIABLES */
 float tempc;  
@@ -46,7 +48,6 @@ void setup() {
   Wire.begin();
   initMPU6050();
   Serial.begin(9600);
-  
 }
 
 int my_putc( char c, FILE *t) {
@@ -58,6 +59,8 @@ int my_putc( char c, FILE *t) {
 void loop() {
   
   getMetrology();
+  // @TODO: test actual temp 
+  getTmpLM35();
   
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
@@ -67,31 +70,15 @@ void loop() {
   WHO_AM_I_data = Wire.read();
   Serial.print("Who am I? - ");
   Serial.println(WHO_AM_I_data);
-  
   getAcc();
-  Serial.print("AcX - ");
-  Serial.print(acc[0]);
-  Serial.print(" | AcY - ");
-  Serial.print(acc[1]);
-  Serial.print(" | AcZ - ");
-  Serial.println(acc[2]);
-  
   getGyro();
-  Serial.print("GyX - ");
-  Serial.print(gyro[0]);
-  Serial.print(" | GyY - ");
-  Serial.print(gyro[1]);
-  Serial.print(" | GyZ - ");
-  Serial.println(gyro[2]);
-  
   getBaro();
-  printf("T = %.2f, p = %.0f Pa, h = %.2f\n", baro[0], baro[1], baro[2]);
-/*** Get and print temperature ***/
-  Serial.print("Temp? - ");
-  Serial.println(readTemp());
+  // @TODO: test this method * writen before 
+  getSerial();
+  // @TODO:timing  
   delay(1000);
   
-  getTmpLM35();
+ 
   
 }
 
@@ -147,6 +134,12 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
+  Serial.print("AcX - ");
+  Serial.print(acc[0]);
+  Serial.print(" | AcY - ");
+  Serial.print(acc[1]);
+  Serial.print(" | AcZ - ");
+  Serial.println(acc[2]);
   return;
   
 }
@@ -178,6 +171,12 @@ void getGyro() {
   gyro[1] = tmp / GYR_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   gyro[2] = tmp / GYR_SCALE_FACT;
+   Serial.print("GyX - ");
+  Serial.print(gyro[0]);
+  Serial.print(" | GyY - ");
+  Serial.print(gyro[1]);
+  Serial.print(" | GyZ - ");
+  Serial.println(gyro[2]);
   return;
 
 }
@@ -187,6 +186,10 @@ void getBaro() {
     baro[0] = bme.readTemperature();
     baro[1] = bme.readPressure();
     baro[2] = bme.readAltitude(REF_PRESSURE);
+    printf("T = %.2f, p = %.0f Pa, h = %.2f\n", baro[0], baro[1], baro[2]);
+/*** Get and print temperature ***/
+    Serial.print("Temp? - ");
+    Serial.println(readTemp());
 
 }
 
@@ -206,7 +209,6 @@ void getMetrology(){
     Serial.println(" m");
     
     Serial.println();
-    delay(2000);
 
 }
 
@@ -219,7 +221,17 @@ void getTmpLM35() {
   Serial.print("in DegreeC=");
   Serial.print("\t");
   Serial.print(tempc);
-  Serial.println();
-  delay(1000); //Delay of 1 second for ease of viewing 
+  Serial.println();  
 
+}
+
+void getSerial() {
+  if (Serial.available())
+  { // If data comes in from serial monitor, send it out to XBee
+    XBee.write(Serial.read());
+  }
+  if (XBee.available())
+  { // If data comes in from XBee, send it out to serial monitor
+    Serial.write(XBee.read());
+  }
 }
