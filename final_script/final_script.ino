@@ -24,7 +24,6 @@ const float REF_PRESSURE=1013.25;
 byte WHO_AM_I_data;
 float acc[3];
 float gyro[3];
-float baro[3];
 
 /* tempLM35 sensor */
 const int TEMPLM35_SENSOR=A0;
@@ -58,7 +57,6 @@ int my_putc( char c, FILE *t) {
 
 void loop() {
   
-  getMetrology();
   // @TODO: test actual temp 
   getTmpLM35();
   
@@ -182,35 +180,21 @@ void getGyro() {
 }
 
 void getBaro() {
-    
-    baro[0] = bme.readTemperature();
-    baro[1] = bme.readPressure();
-    baro[2] = bme.readAltitude(REF_PRESSURE);
-    printf("T = %.2f, p = %.0f Pa, h = %.2f\n", baro[0], baro[1], baro[2]);
 /*** Get and print temperature ***/
-    Serial.print("Temp? - ");
-    Serial.println(readTemp());
-
-}
-
-void getMetrology(){
-    
-    //@TODO: make more precise readings and average  
-    Serial.print(F("Temperature = "));
-    Serial.print(bme.readTemperature());
-    Serial.println(" *C");
-    
-    Serial.print(F("Pressure = "));
+    Serial.print("Temperature:");
+    Serial.println( bme.readTemperature());
+       
+    Serial.print(F("Pressure:"));
     Serial.print(bme.readPressure());
     Serial.println(" Pa");
 
-    Serial.print(F("Approx altitude = "));
-    Serial.print(bme.readAltitude(1013.25)); // this should be adjusted to your local forcase
+    Serial.print(F("Altitude:"));
+    Serial.print(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
     Serial.println(" m");
     
-    Serial.println();
 
 }
+
 
 void getTmpLM35() {
   
