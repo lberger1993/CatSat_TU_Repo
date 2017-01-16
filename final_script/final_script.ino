@@ -72,11 +72,8 @@ void loop() {
   getGyro();
   getBaro();
   // @TODO: test this method * writen before 
-  getSerial();
-  // @TODO:timing  
+  getSerial(); 
   delay(1000);
-  
- 
   
 }
 
