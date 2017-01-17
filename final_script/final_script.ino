@@ -41,7 +41,6 @@ Adafruit_BMP280 bme; // I2C
 SoftwareSerial XBee(2, 3); // XBEE
 
 void setup() {
-
   initXBee();
   initB280();
   Wire.begin();
@@ -49,36 +48,37 @@ void setup() {
   Serial.begin(9600);
 }
 
-int my_putc( char c, FILE *t) {
-  
-  Serial.write( c );
-
-}
 
 void loop() {
   
-  // @TODO: test actual temp 
   getTmpLM35();
-  
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
-  
   WHO_AM_I_data = Wire.read();
-  Serial.print("Who am I? - ");
+  Serial.println("Who am I? - ");
   Serial.println(WHO_AM_I_data);
   getAcc();
   getGyro();
   getBaro();
-  // @TODO: test this method * writen before 
-  getSerial(); 
+  readTemp();
   delay(1000);
   
 }
 
+void initXBee() {
+   // Configures XBEE
+   XBee.begin(9600);
+}
+
+void initTMPLM35() {
+   // Configures temp35 sensor 
+  pinMode(TEMPLM35_SENSOR,INPUT); 
+}
+
 void initMPU6050() {
-  
+  // Configures MPU 6050  
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(PWR_MGMT_1);
   Wire.write(0);
@@ -89,17 +89,10 @@ void initMPU6050() {
   Wire.write(0x1B);  // Set gyroscope precision
   Wire.write(0x07);  // .. to +/- 250 deg/s
   Wire.endTransmission();
-  
-}
-
-void initXBee() {
-   
-   XBee.begin(9600);
-   
 }
 
 void initB280() {
-   
+  // Configures Barometer
   Wire.begin();
   Serial.begin(9600);
   if (!bme.begin()) {  
@@ -107,17 +100,10 @@ void initB280() {
     while (1);
   }
   delay(2000);
-  
 }
 
-void initTMPLM35() {
-
-  pinMode(TEMPLM35_SENSOR,INPUT);
-  
-}
 
 void getAcc() {
-  
   int tmp;
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(MPU_ACX_1);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -136,10 +122,9 @@ void getAcc() {
   Serial.print(" | AcZ - ");
   Serial.println(acc[2]);
   return;
-  
 }
+
 float readTemp() {
-  
   int Temp;
   float tempC;
   Wire.beginTransmission(MPU_ADDR);
@@ -147,14 +132,11 @@ float readTemp() {
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,2);
   Temp= Wire.read() <<8 | Wire.read();
-//  Serial.print(Temp);Serial.print(" ");
   tempC = Temp/340. + 36.53;
-  return tempC;
-  
+  return tempC; 
 }
 
 void getGyro() {
-  
   int tmp;
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(MPU_GYX_1);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -166,53 +148,26 @@ void getGyro() {
   gyro[1] = tmp / GYR_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   gyro[2] = tmp / GYR_SCALE_FACT;
-   Serial.print("GyX - ");
+  Serial.print("GyX - ");
   Serial.print(gyro[0]);
   Serial.print(" | GyY - ");
   Serial.print(gyro[1]);
   Serial.print(" | GyZ - ");
   Serial.println(gyro[2]);
   return;
-
 }
 
 void getBaro() {
 /*** Get and print temperature ***/
-    Serial.print("Temperature:");
     Serial.println( bme.readTemperature());
-       
-    Serial.print(F("Pressure:"));
-    Serial.print(bme.readPressure());
-    Serial.println(" Pa");
-
-    Serial.print(F("Altitude:"));
-    Serial.print(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
-    Serial.println(" m");
-    
-
+    Serial.println(bme.readPressure());
+    Serial.println(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
 }
 
-
 void getTmpLM35() {
-  
   vout=analogRead(TEMPLM35_SENSOR);
   vout=(vout*500)/1023;
   tempc=vout; // Storing value in Degree Celsius
-
-  Serial.print("in DegreeC=");
-  Serial.print("\t");
-  Serial.print(tempc);
-  Serial.println();  
-
+  Serial.println(tempc);
 }
 
-void getSerial() {
-  if (Serial.available())
-  { // If data comes in from serial monitor, send it out to XBee
-    XBee.write(Serial.read());
-  }
-  if (XBee.available())
-  { // If data comes in from XBee, send it out to serial monitor
-    Serial.write(XBee.read());
-  }
-}
