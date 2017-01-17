@@ -14,17 +14,17 @@ const byte MPU_ACZ_1=0x3F;
 const byte MPU_TEMP_1=0x41;
 const byte MPU_GYX_1=0x44;
 
-
 /* MPU VARIABLE CONSTANTS */
 const float ACC_SCALE_FACT=4096.;
 const float GYR_SCALE_FACT=131.;
 const float REF_PRESSURE=1013.25;
 
+/* MPU RESULTS */
 byte WHO_AM_I_data;
 float acc[3];
 float gyro[3];
 
-/* tempLM35 sensor */
+/* tempLM35 SENSOR */
 const int TEMPLM35_SENSOR=A0;
 
 /* tempLM35 VARIABLES */
@@ -32,10 +32,10 @@ float tempc;
 float tempf;  
 float vout; 
 
-/* Bme Sensor */
+/* Bme SENSOR */
 Adafruit_BMP280 bme; 
 
-/* XBee Sensor */
+/* XBee SENSOR */
 SoftwareSerial XBee(2, 3); 
 
 void setup() {
@@ -45,7 +45,6 @@ void setup() {
   initMPU6050();
   Serial.begin(9600);
 }
-
 
 void loop() {
   getTmpLM35();
@@ -60,8 +59,7 @@ void loop() {
   getGyro();
   getBaro();
   readTemp();
-  delay(1000);
-  
+  delay(1000); 
 }
 
 void initXBee() {
@@ -98,7 +96,6 @@ void initB280() {
   }
   delay(2000);
 }
-
 
 void getAcc() {
   /*** Get Accelerator ***/
