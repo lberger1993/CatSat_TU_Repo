@@ -1,5 +1,4 @@
 // @ToDO: weigh each piece, place on template
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -33,12 +32,11 @@ float tempc;
 float tempf;  
 float vout; 
 
-Adafruit_BMP280 bme; // I2C
+/* Bme Sensor */
+Adafruit_BMP280 bme; 
 
-//@TODO : May need to change this ???
-// XBee's DOUT (TX) is connected to pin 2 (Arduino's Software RX)
-// XBee's DIN (RX) is connected to pin 3 (Arduino's Software TX)
-SoftwareSerial XBee(2, 3); // XBEE
+/* XBee Sensor */
+SoftwareSerial XBee(2, 3); 
 
 void setup() {
   initXBee();
@@ -50,7 +48,6 @@ void setup() {
 
 
 void loop() {
-  
   getTmpLM35();
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
@@ -104,6 +101,7 @@ void initB280() {
 
 
 void getAcc() {
+  /*** Get Accelerator ***/
   int tmp;
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(MPU_ACX_1);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -125,6 +123,7 @@ void getAcc() {
 }
 
 float readTemp() {
+  /*** Read Temps  ***/
   int Temp;
   float tempC;
   Wire.beginTransmission(MPU_ADDR);
@@ -137,6 +136,7 @@ float readTemp() {
 }
 
 void getGyro() {
+  /*** Get Gyro readings ***/
   int tmp;
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(MPU_GYX_1);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -158,13 +158,14 @@ void getGyro() {
 }
 
 void getBaro() {
-/*** Get and print temperature ***/
+    /*** Get Baro readings ***/
     Serial.println( bme.readTemperature());
     Serial.println(bme.readPressure());
     Serial.println(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
 }
 
 void getTmpLM35() {
+  /*** Get and print temperature ***/
   vout=analogRead(TEMPLM35_SENSOR);
   vout=(vout*500)/1023;
   tempc=vout; // Storing value in Degree Celsius
