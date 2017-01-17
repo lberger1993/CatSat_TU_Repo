@@ -38,6 +38,9 @@ Adafruit_BMP280 bme;
 /* XBee SENSOR */
 SoftwareSerial XBee(2, 3); 
 
+/* counter & timer */
+int counter = 0; 
+
 void setup() {
   initXBee();
   initB280();
@@ -52,13 +55,12 @@ void loop() {
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
-  //  WHO_AM_I_data = Wire.read();
-  //  Serial.println("Who am I? - ");
-  //  Serial.println(WHO_AM_I_data);
   getAcc();
   getGyro();
   getBaro();
   readTemp();
+  counter = counter + 1; 
+  Serial.println(counter);
   delay(1000); 
 }
 
@@ -112,10 +114,15 @@ void getAcc() {
   acc[2] = tmp / ACC_SCALE_FACT;
   //Serial.print("AcX - ");
   Serial.println(acc[0]);
+  // check acceleration here 
   //  Serial.print(" | AcY - ");
+  if (acc[0] == 60){
+     Serial.println("Should be released");
+  }
   Serial.print(acc[1]);
   //  Serial.print(" | AcZ - ");
   Serial.println(acc[2]);
+  
   return;
 }
 
