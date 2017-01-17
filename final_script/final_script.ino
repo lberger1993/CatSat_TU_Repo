@@ -52,9 +52,9 @@ void loop() {
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
-  WHO_AM_I_data = Wire.read();
-  Serial.println("Who am I? - ");
-  Serial.println(WHO_AM_I_data);
+  //  WHO_AM_I_data = Wire.read();
+  //  Serial.println("Who am I? - ");
+  //  Serial.println(WHO_AM_I_data);
   getAcc();
   getGyro();
   getBaro();
@@ -110,11 +110,11 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
-  Serial.print("AcX - ");
-  Serial.print(acc[0]);
-  Serial.print(" | AcY - ");
+  //Serial.print("AcX - ");
+  Serial.println(acc[0]);
+  //  Serial.print(" | AcY - ");
   Serial.print(acc[1]);
-  Serial.print(" | AcZ - ");
+  //  Serial.print(" | AcZ - ");
   Serial.println(acc[2]);
   return;
 }
@@ -156,9 +156,9 @@ void getGyro() {
 
 void getBaro() {
     /*** Get Baro readings ***/
-    Serial.println( bme.readTemperature());
-    Serial.println(bme.readPressure());
-    Serial.println(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
+  Serial.println( bme.readTemperature());
+  Serial.println(bme.readPressure());
+  Serial.println(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
 }
 
 void getTmpLM35() {
