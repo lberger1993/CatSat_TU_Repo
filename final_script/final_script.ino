@@ -50,17 +50,26 @@ void setup() {
 }
 
 void loop() {
+  // COUNT, outside TMP,inside TMP0, inside TMP1, Barometer, Accelerator, Gyro
+  counter = counter + 1;
+  
+  Serial.print(counter);
+  Serial.print(";");
+  
   getTmpLM35();
+  readTemp();
+  getBaro();
+
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
   getAcc();
+  
   getGyro();
-  getBaro();
-  readTemp();
-  counter = counter + 1; 
-  Serial.println(counter);
+  Serial.print(counter);
+    Serial.println();
+//  Serial.print(";");
   delay(1000); 
 }
 
@@ -93,7 +102,7 @@ void initB280() {
   Wire.begin();
   Serial.begin(9600);
   if (!bme.begin()) {  
-    Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+    Serial.println(("Could not find a valid BMP280 sensor, check wiring!"));
     while (1);
   }
   delay(2000);
@@ -112,16 +121,16 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
-  //Serial.print("AcX - ");
-  Serial.println(acc[0]);
-  // check acceleration here 
-  //  Serial.print(" | AcY - ");
-  if (acc[0] == 60){
-     Serial.println("Should be released");
-  }
+  
+  Serial.print(acc[0]);
+  Serial.print(";");
+//  if (acc[0] == 60){
+//     Serial.println("Should be released");
+//  }
   Serial.print(acc[1]);
-  //  Serial.print(" | AcZ - ");
-  Serial.println(acc[2]);
+  Serial.print(";");
+  Serial.print(acc[2]);
+  Serial.print(";");
   
   return;
 }
@@ -136,6 +145,8 @@ float readTemp() {
   Wire.requestFrom(MPU_ADDR,2);
   Temp= Wire.read() <<8 | Wire.read();
   tempC = Temp/340. + 36.53;
+  Serial.print(tempC); 
+  Serial.print(";");
   return tempC; 
 }
 
@@ -152,20 +163,23 @@ void getGyro() {
   gyro[1] = tmp / GYR_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   gyro[2] = tmp / GYR_SCALE_FACT;
-  Serial.print("GyX - ");
   Serial.print(gyro[0]);
-  Serial.print(" | GyY - ");
+  Serial.print(";");
   Serial.print(gyro[1]);
-  Serial.print(" | GyZ - ");
-  Serial.println(gyro[2]);
+  Serial.print(";");
+  Serial.print(gyro[2]);
+  Serial.print(";");
   return;
 }
 
 void getBaro() {
     /*** Get Baro readings ***/
-  Serial.println( bme.readTemperature());
-  Serial.println(bme.readPressure());
-  Serial.println(bme.readAltitude(REF_PRESSURE)); // this should be adjusted to your local forcase
+  Serial.print(bme.readTemperature());
+  Serial.print(";");
+  Serial.print(bme.readPressure());
+  Serial.print(";");
+  Serial.print(bme.readAltitude(REF_PRESSURE));
+  Serial.print(";");// this should be adjusted to your local forcase
 }
 
 void getTmpLM35() {
@@ -173,6 +187,7 @@ void getTmpLM35() {
   vout=analogRead(TEMPLM35_SENSOR);
   vout=(vout*500)/1023;
   tempc=vout; // Storing value in Degree Celsius
-  Serial.println(tempc);
+  Serial.print(tempc);
+  Serial.println(";");
 }
 
