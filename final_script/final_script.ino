@@ -68,7 +68,7 @@ void loop() {
   
   getGyro();
   Serial.print(counter);
-    Serial.println();
+  Serial.println();
 //  Serial.print(";");
   delay(1000); 
 }
