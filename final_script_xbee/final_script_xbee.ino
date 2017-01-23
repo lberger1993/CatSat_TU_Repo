@@ -1,8 +1,9 @@
-// @ToDO: weigh each piece, place on template
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
 #include <SoftwareSerial.h>
+#include <Servo.h>
 
 /* MPU CONSTANTS */
 const int MPU_ADDR=0x68;
@@ -25,7 +26,7 @@ float acc[3];
 float gyro[3];
 
 /* tempLM35 SENSOR */
-const int TEMPLM35_SENSOR=A0;
+const int TEMPLM35_SENSOR=A7;
 
 /* tempLM35 VARIABLES */
 float tempc;  
@@ -40,6 +41,9 @@ SoftwareSerial XBee(2, 3);
 
 /* counter & timer */
 int counter = 0; 
+
+/* Servos */
+Servo myservo;
 
 void setup() {
   initXBee();
@@ -80,6 +84,11 @@ void loop() {
 void initXBee() {
    // Configures XBEE
    XBee.begin(9600);
+}
+void initServo() {
+   // Configures Servos
+  // @TODO: find good attachment
+  myservo.attach(14, 1000, 2000);
 }
 
 void initTMPLM35() {
@@ -128,9 +137,15 @@ void getAcc() {
   
   XBee.print(acc[0]);
   XBee.print(";");
-//  if (acc[0] == 60){
-//     XBee.println("Should be released");
-//  }
+  // more precise 
+  if (acc[0] == 60){
+    XBee.print("Should be released");
+    myservo.write(0);
+    delay(1000);
+    myservo.write(180);
+    delay(1000);
+     
+  }
   XBee.print(acc[1]);
   XBee.print(";");
   XBee.print(acc[2]);
