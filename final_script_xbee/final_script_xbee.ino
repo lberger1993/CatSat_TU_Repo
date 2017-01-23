@@ -87,8 +87,7 @@ void initXBee() {
 }
 void initServo() {
    // Configures Servos
-  // @TODO: find good attachment
-  myservo.attach(14, 1000, 2000);
+  myservo.attach(7, 1000, 2000);
 }
 
 void initTMPLM35() {
