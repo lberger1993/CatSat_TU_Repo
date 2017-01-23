@@ -7,7 +7,7 @@ int pos = 0;    // variable to store the servo position
  
 void setup() 
 { 
-  myservo.attach(7, 1000, 2000);  
+  myservo.attach(9, 1000, 2000);  
   
   myservo.write(0);
   delay(1000);
@@ -18,7 +18,7 @@ void setup()
  
 void loop() 
 { 
-
+//
 //  for(pos = 0; pos <= 180; pos += 1) // goes from 0 degrees to 180 degrees 
 //  {                                  // in steps of 1 degree 
 //    myservo.write(pos);              // tell servo to go to position in variable 'pos' 

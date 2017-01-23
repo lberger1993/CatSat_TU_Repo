@@ -47,7 +47,8 @@ Servo myservo;
 
 void setup() {
   initXBee();
-//  initB280();
+  initServo();
+////  initB280();
   Wire.begin();
   initMPU6050();
   Serial.begin(9600);
@@ -56,7 +57,6 @@ void setup() {
 void loop() {
   // COUNT, outside TMP,inside TMP0, inside TMP1, Barometer, Accelerator, Gyro
   counter = counter + 1;
-  
   XBee.print(counter);
   XBee.print(";");
   XBee.print(millis());
@@ -64,21 +64,26 @@ void loop() {
   
   getTmpLM35();
   readTemp();
-//  getBaro();
-
+  //getBaro();
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
-  getAcc();
   
+  getAcc();
   getGyro();
-  XBee.print(counter);
   XBee.print(";");
   XBee.print(millis());
   XBee.println();
-//  XBee.print(";");
-  delay(1000); 
+  // @TO DO: at appropriate evaluation
+  if (counter == 3) {
+    myservo.write(0);
+    delay(1000);
+    myservo.write(180);
+    delay(1000);
+    myservo.detach();
+  }
+  
 }
 
 void initXBee() {
@@ -86,8 +91,8 @@ void initXBee() {
    XBee.begin(9600);
 }
 void initServo() {
-   // Configures Servos
-  myservo.attach(7, 1000, 2000);
+  // Configures Servos
+  myservo.attach(9, 1000, 2000);
 }
 
 void initTMPLM35() {
@@ -135,16 +140,18 @@ void getAcc() {
   acc[2] = tmp / ACC_SCALE_FACT;
   
   XBee.print(acc[0]);
-  XBee.print(";");
-  // more precise 
-  if (acc[0] == 60){
-    XBee.print("Should be released");
-    myservo.write(0);
-    delay(1000);
-    myservo.write(180);
-    delay(1000);
-     
-  }
+  XBee.print(";"); 
+  
+  int isReleased = 0;
+  // @ HAS TO BE TESTED
+//  if (acc[1] == 0.05 &&  isReleased == 0){
+//    XBee.print("Should be released");
+//    myservo.write(0);
+//    delay(1000);
+//    myservo.write(180);
+//    delay(1000);
+//    isReleased = isReleased + 1; 
+//  }
   XBee.print(acc[1]);
   XBee.print(";");
   XBee.print(acc[2]);

@@ -83,7 +83,7 @@ void initXBee() {
 }
 
 void initServo() {
-   // Configures XBEE
+  // Configures XBEE
   myservo.attach(14, 1000, 2000);
 }
 
