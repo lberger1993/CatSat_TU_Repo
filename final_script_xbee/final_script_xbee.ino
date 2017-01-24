@@ -1,3 +1,5 @@
+// @ TO DO : find when to release the servos
+// @ TO DO : get calibration
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -24,6 +26,7 @@ const float REF_PRESSURE=1013.25;
 byte WHO_AM_I_data;
 float acc[3];
 float gyro[3];
+float baro[3];
 
 /* tempLM35 SENSOR */
 const int TEMPLM35_SENSOR=A7;
@@ -35,20 +38,23 @@ float vout;
 
 /* Bme SENSOR */
 Adafruit_BMP280 bme; 
+float altitude;
 
 /* XBee SENSOR */
 SoftwareSerial XBee(2, 3); 
 
 /* counter & timer */
 int counter = 0; 
+unsigned long StartTime = 0;
+unsigned long CurrentTime;
+unsigned long ElapsedTime;
 
 /* Servos */
 Servo myservo;
 
 void setup() {
   initXBee();
-  initServo();
-////  initB280();
+  initB280();
   Wire.begin();
   initMPU6050();
   Serial.begin(9600);
@@ -64,26 +70,39 @@ void loop() {
   
   getTmpLM35();
   readTemp();
-  //getBaro();
+  getBaro();
+
+  Serial.println("Altitude");
+  Serial.println(baro[2]);
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
-  
   getAcc();
   getGyro();
-  XBee.print(";");
   XBee.print(millis());
   XBee.println();
-  // @TO DO: at appropriate evaluation
-  if (counter == 3) {
-    myservo.write(0);
-    delay(1000);
-    myservo.write(180);
-    delay(1000);
-    myservo.detach();
-  }
   
+  startTimer();
+  CurrentTime = millis();
+  ElapsedTime = CurrentTime - StartTime;
+  Serial.println("Elapsed Time");
+  Serial.println(ElapsedTime);
+  Serial.println("*****");
+  Serial.println("Counter");
+  Serial.println(counter);
+  Serial.println("Altitude");
+  Serial.println(baro[2]);
+  
+    if (baro[2] < -109) {
+      Serial.println("Send signal");
+      initServo();
+      myservo.write(0);
+      // @TODO maybe write (180)
+      delay(1000);
+      myservo.detach(); 
+    }
+
 }
 
 void initXBee() {
@@ -143,15 +162,6 @@ void getAcc() {
   XBee.print(";"); 
   
   int isReleased = 0;
-  // @ HAS TO BE TESTED
-//  if (acc[1] == 0.05 &&  isReleased == 0){
-//    XBee.print("Should be released");
-//    myservo.write(0);
-//    delay(1000);
-//    myservo.write(180);
-//    delay(1000);
-//    isReleased = isReleased + 1; 
-//  }
   XBee.print(acc[1]);
   XBee.print(";");
   XBee.print(acc[2]);
@@ -197,21 +207,35 @@ void getGyro() {
   return;
 }
 
-void getBaro() {
+float getBaro() {
     /*** Get Baro readings ***/
   XBee.print(bme.readTemperature());
+  baro[0] = bme.readTemperature();
   XBee.print(";");
   XBee.print(bme.readPressure());
   XBee.print(";");
   XBee.print(bme.readAltitude(REF_PRESSURE));
+  baro[2] = bme.readAltitude(REF_PRESSURE);
   XBee.print(";");// this should be adjusted to your local forcase
+  
 }
 
 void getTmpLM35() {
   /*** Get and print temperature ***/
   vout=analogRead(TEMPLM35_SENSOR);
+  // Change to how is calibrated
   vout=(vout*500)/1023;
   tempc=vout; // Storing value in Degree Celsius
   XBee.print(tempc);
   XBee.print(";");
 }
+
+void startTimer(){
+   if (XBee.available() && Serial.write(XBee.read())){
+    Serial.println(XBee.read());
+    StartTime = millis();
+    counter = 0;
+    delay(1000);
+   }
+}
+
