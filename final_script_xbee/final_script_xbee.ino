@@ -1,6 +1,5 @@
 // @ TO DO : find when to release the servos
 // @ TO DO : get calibration
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -45,9 +44,10 @@ SoftwareSerial XBee(2, 3);
 
 /* counter & timer */
 int counter = 0; 
-unsigned long StartTime = 0;
-unsigned long CurrentTime;
-unsigned long ElapsedTime;
+unsigned long start_time = 0;
+unsigned long current_time;
+unsigned long elapsed_time;
+boolean servo_starting_position = false; 
 
 /* Servos */
 Servo myservo;
@@ -67,11 +67,9 @@ void loop() {
   XBee.print(";");
   XBee.print(millis());
   XBee.print(";");
-  
   getTmpLM35();
   readTemp();
   getBaro();
-
   Serial.println("Altitude");
   Serial.println(baro[2]);
   Wire.beginTransmission(MPU_ADDR);
@@ -82,25 +80,23 @@ void loop() {
   getGyro();
   XBee.print(millis());
   XBee.println();
-  
-  startTimer();
-  CurrentTime = millis();
-  ElapsedTime = CurrentTime - StartTime;
+  start_timer();
+  current_time = millis();
+  elapsed_time = current_time - start_time;
   Serial.println("Elapsed Time");
-  Serial.println(ElapsedTime);
+  Serial.println(elapsed_time);
   Serial.println("*****");
   Serial.println("Counter");
   Serial.println(counter);
   Serial.println("Altitude");
   Serial.println(baro[2]);
-  
-    if (baro[2] < -109) {
+  if (servo_starting_position == true && counter == 100) {
       Serial.println("Send signal");
       initServo();
-      myservo.write(0);
-      // @TODO maybe write (180)
       delay(1000);
-      myservo.detach(); 
+      myservo.write(180);
+      delay(1000);
+      myservo.detach();
     }
 
 }
@@ -230,12 +226,18 @@ void getTmpLM35() {
   XBee.print(";");
 }
 
-void startTimer(){
+void start_timer(){
    if (XBee.available() && Serial.write(XBee.read())){
     Serial.println(XBee.read());
-    StartTime = millis();
-    counter = 0;
+    start_time = millis();
+//    counter = 0;
+    Serial.println("Should open");
     delay(1000);
+    initServo();
+    myservo.write(0);
+    delay(1000);
+    myservo.detach();
+    servo_starting_position = true;
    }
 }
 
