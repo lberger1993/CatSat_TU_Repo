@@ -220,8 +220,8 @@ void getTmpLM35() {
   /*** Get and print temperature ***/
   vout=analogRead(TEMPLM35_SENSOR);
   // Change to how is calibrated
-  vout=(vout*500)/1023;
-  tempc=vout; // Storing value in Degree Celsius
+  
+  tempc=vout*0.5966-66.2; // Storing value in Degree Celsius
   XBee.print(tempc);
   XBee.print(";");
 }
