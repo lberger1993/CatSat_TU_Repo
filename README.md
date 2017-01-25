@@ -23,11 +23,15 @@ Final Script for use is in the final repository
 
 ## Launch Menu:
 
-'a' : Begin timer, allow release of catsat 
-'b' : Set servo angle at 0 
-'c' : Set servo angle at 90 
-'d' : Set servo angle at 180 
-'e' : Force Ejection 
+```'a'``` : Begin timer, allow release of catsat 
+
+```'b'```: Set servo angle at 0 
+
+```'c' ```: Set servo angle at 90 
+
+```'d'``` : Set servo angle at 180 
+
+```'e' ``` : Force Ejection 
 
 ## On launch day 
 for placement of the servo, can use 'b', 'c', 'd' : -> need to set 'a' to allow for release
