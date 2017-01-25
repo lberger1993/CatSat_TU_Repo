@@ -63,11 +63,22 @@ void setup() {
 
 void loop() {
   
-  // COUNT, outside TMP,inside TMP0, inside TMP1, Barometer, Accelerator, Gyro
+  /***
+  Count 
+  Elapsed time
+  outside TMP,
+  inside TMP0, 
+  inside TMP1, 
+  Barometer, 
+  Accelerator,
+  Gyro ***/
+  
   counter = counter + 1;
   XBee.print(counter);
+  current_time = millis();
+  elapsed_time = current_time - start_time;
   XBee.print(";");
-  XBee.print(millis());
+  XBee.print(elapsed_time);
   XBee.print(";");
   getTmpLM35();
   readTemp();
@@ -80,12 +91,10 @@ void loop() {
   getGyro();
   XBee.print(millis());
   XBee.println();
-  current_time = millis();
-  elapsed_time = current_time - start_time;
   delay(1000);
   xBeeMenu();
   
-  // Actual Ejection criteria 
+  // @ TO DO : Actual Ejection criteria 
   if (servo_starting_position == true && counter == 120) {
       Serial.println("Send signal");
       servoRotate(180);
@@ -95,16 +104,16 @@ void loop() {
 
 
 void initXBee() {
-   // Configures XBEE
+   /** Configures XBEE **/
    XBee.begin(9600);
 }
 void initServo() {
-  // Configures Servos
+  /** Configures Servos **/
   myservo.attach(9, 1000, 2000);
 }
 
 void initTMPLM35() {
-   // Configures temp35 sensor 
+   /** Configures temp35 sensor **/
   pinMode(TEMPLM35_SENSOR,INPUT); 
 }
 
@@ -123,7 +132,7 @@ void initMPU6050() {
 }
 
 void initB280() {
-  /** Configures Barometer**/
+  /** Configures Barometer **/
   Wire.begin();
   XBee.begin(9600);
   if (!bme.begin()) {  
@@ -146,7 +155,6 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
-
   
   XBee.print(acc[0]);
   XBee.print(";"); 
@@ -175,6 +183,7 @@ float readTemp() {
 
 void getGyro() {
   /*** Get Gyro readings ***/
+  
   int tmp;
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(MPU_GYX_1);  // starting with register 0x3B (ACCEL_XOUT_H)
