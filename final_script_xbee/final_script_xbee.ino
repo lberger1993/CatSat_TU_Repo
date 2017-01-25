@@ -1,5 +1,5 @@
 // @ TO DO : find when to release the servos
-// @ TO DO : get calibration
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -49,6 +49,7 @@ unsigned long current_time;
 unsigned long elapsed_time;
 boolean servo_starting_position = false; 
 
+int servo_angle = 0; 
 /* Servos */
 Servo myservo;
 
@@ -61,6 +62,7 @@ void setup() {
 }
 
 void loop() {
+  
   // COUNT, outside TMP,inside TMP0, inside TMP1, Barometer, Accelerator, Gyro
   counter = counter + 1;
   XBee.print(counter);
@@ -70,8 +72,6 @@ void loop() {
   getTmpLM35();
   readTemp();
   getBaro();
-  Serial.println("Altitude");
-  Serial.println(baro[2]);
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
@@ -80,26 +80,19 @@ void loop() {
   getGyro();
   XBee.print(millis());
   XBee.println();
-  start_timer();
   current_time = millis();
   elapsed_time = current_time - start_time;
-  Serial.println("Elapsed Time");
-  Serial.println(elapsed_time);
-  Serial.println("*****");
-  Serial.println("Counter");
-  Serial.println(counter);
-  Serial.println("Altitude");
-  Serial.println(baro[2]);
-  if (servo_starting_position == true && counter == 100) {
+  delay(1000);
+  xBeeMenu();
+  
+  // Actual Ejection criteria 
+  if (servo_starting_position == true && counter == 120) {
       Serial.println("Send signal");
-      initServo();
-      delay(1000);
-      myservo.write(180);
-      delay(1000);
-      myservo.detach();
+      servoRotate(180);
+      servo_starting_position == false;
     }
-
 }
+
 
 void initXBee() {
    // Configures XBEE
@@ -116,7 +109,7 @@ void initTMPLM35() {
 }
 
 void initMPU6050() {
-  // Configures MPU 6050  
+  /**  Configures MPU 6050  **/
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(PWR_MGMT_1);
   Wire.write(0);
@@ -130,7 +123,7 @@ void initMPU6050() {
 }
 
 void initB280() {
-  // Configures Barometer
+  /** Configures Barometer**/
   Wire.begin();
   XBee.begin(9600);
   if (!bme.begin()) {  
@@ -153,11 +146,10 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
+
   
   XBee.print(acc[0]);
   XBee.print(";"); 
-  
-  int isReleased = 0;
   XBee.print(acc[1]);
   XBee.print(";");
   XBee.print(acc[2]);
@@ -204,7 +196,7 @@ void getGyro() {
 }
 
 float getBaro() {
-    /*** Get Baro readings ***/
+  /*** Get Baro readings ***/
   XBee.print(bme.readTemperature());
   baro[0] = bme.readTemperature();
   XBee.print(";");
@@ -219,25 +211,62 @@ float getBaro() {
 void getTmpLM35() {
   /*** Get and print temperature ***/
   vout=analogRead(TEMPLM35_SENSOR);
-  // Change to how is calibrated
-  vout=(vout*500)/1023;
-  tempc=vout; // Storing value in Degree Celsius
+  tempc=vout*0.5966-66.2;
   XBee.print(tempc);
   XBee.print(";");
 }
 
-void start_timer(){
-   if (XBee.available() && Serial.write(XBee.read())){
-    Serial.println(XBee.read());
-    start_time = millis();
-//    counter = 0;
-    Serial.println("Should open");
-    delay(1000);
-    initServo();
-    myservo.write(0);
-    delay(1000);
-    myservo.detach();
-    servo_starting_position = true;
-   }
+void servoRotate(int servo_angle) { 
+   /*** Rotate the server ***/
+   initServo();
+   delay(1000);
+   myservo.write(servo_angle);
+   delay(1000);
+   myservo.detach();
 }
+
+void start_timer(int servo_angle){
+    /** Start position ***/ 
+    start_time = millis();
+    servoRotate(servo_angle);
+    delay(1000);
+    XBee.println("***** Servos in position *****");
+    servo_starting_position = true;
+}
+
+void xBeeMenu() { 
+  /** Controls the Servos **/
+  if (XBee.available()){
+    char c = XBee.read();
+    switch (c){
+    // master case 
+    case 'a': 
+      Serial.println("Begin Confirguration");
+      servo_angle = 0; 
+      start_timer(servo_angle);
+      break;
+    case 'b':
+      Serial.println("Start at 0");
+      servo_angle = 0; 
+      servoRotate(servo_angle);
+      break;
+    case 'c':
+      Serial.println("Start at 90");
+      servo_angle = 90; 
+      servoRotate(servo_angle);
+      break;
+    case 'd':
+      Serial.println("Start at 180");
+      servo_angle = 180; 
+      servoRotate(servo_angle);
+      break;
+    case 'e':
+      Serial.println("Forced Ejection");
+      servo_angle = 180; 
+      servoRotate(servo_angle);
+      break;
+    }
+  }
+}
+
 
