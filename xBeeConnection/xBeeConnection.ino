@@ -24,6 +24,7 @@ void setup()
   // setting of your XBee.
   XBee.begin(9600);
   Serial.begin(9600);
+  //Serial.print("I start");
 }
 
 void loop()
@@ -34,6 +35,7 @@ void loop()
   }
   if (XBee.available())
   { // If data comes in from XBee, send it out to serial monitor
+//    Serial.print("Data");
     Serial.write(XBee.read());
   }
 }

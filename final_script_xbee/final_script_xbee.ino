@@ -1,9 +1,10 @@
+// @ TO DO : find when to release the servos
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
 #include <SoftwareSerial.h>
-#include <Servo.h> 
-
+#include <Servo.h>
 
 /* MPU CONSTANTS */
 const int MPU_ADDR=0x68;
@@ -24,6 +25,7 @@ const float REF_PRESSURE=1013.25;
 byte WHO_AM_I_data;
 float acc[3];
 float gyro[3];
+float baro[3];
 
 /* tempLM35 SENSOR */
 const int TEMPLM35_SENSOR=A7;
@@ -35,13 +37,19 @@ float vout;
 
 /* Bme SENSOR */
 Adafruit_BMP280 bme; 
+float altitude;
 
 /* XBee SENSOR */
 SoftwareSerial XBee(2, 3); 
 
 /* counter & timer */
 int counter = 0; 
+unsigned long start_time = 0;
+unsigned long current_time;
+unsigned long elapsed_time;
+boolean servo_starting_position = false; 
 
+int servo_angle = 0; 
 /* Servos */
 Servo myservo;
 
@@ -54,39 +62,46 @@ void setup() {
 }
 
 void loop() {
+  
   // COUNT, outside TMP,inside TMP0, inside TMP1, Barometer, Accelerator, Gyro
   counter = counter + 1;
-  
-  Serial.print(counter);
-  Serial.print(";");
-  
+  XBee.print(counter);
+  XBee.print(";");
+  XBee.print(millis());
+  XBee.print(";");
   getTmpLM35();
   readTemp();
   getBaro();
-
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(WHO_AM_I);
   Wire.endTransmission();
   Wire.requestFrom(MPU_ADDR,1);
   getAcc();
-  
   getGyro();
-  Serial.print(counter);
-  Serial.println();
-//  Serial.print(";");
-  delay(1000); 
+  XBee.print(millis());
+  XBee.println();
+  current_time = millis();
+  elapsed_time = current_time - start_time;
+  delay(1000);
+  xBeeMenu();
+  
+  // Actual Ejection criteria 
+  if (servo_starting_position == true && counter == 120) {
+      Serial.println("Send signal");
+      servoRotate(180);
+      servo_starting_position == false;
+    }
 }
+
 
 void initXBee() {
    // Configures XBEE
    XBee.begin(9600);
 }
-
 void initServo() {
-  // Configures XBEE
-  myservo.attach(14, 1000, 2000);
+  // Configures Servos
+  myservo.attach(9, 1000, 2000);
 }
-
 
 void initTMPLM35() {
    // Configures temp35 sensor 
@@ -94,7 +109,7 @@ void initTMPLM35() {
 }
 
 void initMPU6050() {
-  // Configures MPU 6050  
+  /**  Configures MPU 6050  **/
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(PWR_MGMT_1);
   Wire.write(0);
@@ -108,11 +123,11 @@ void initMPU6050() {
 }
 
 void initB280() {
-  // Configures Barometer
+  /** Configures Barometer**/
   Wire.begin();
-  Serial.begin(9600);
+  XBee.begin(9600);
   if (!bme.begin()) {  
-    Serial.println(("Could not find a valid BMP280 sensor, check wiring!"));
+    XBee.println(("Could not find a valid BMP280 sensor, check wiring!"));
     while (1);
   }
   delay(2000);
@@ -131,21 +146,14 @@ void getAcc() {
   acc[1] = tmp / ACC_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   acc[2] = tmp / ACC_SCALE_FACT;
+
   
-  Serial.print(acc[0]);
-  Serial.print(";");
-  if (acc[0] == 60){
-    Serial.println("Should be released");
-    myservo.write(0);
-    delay(1000);
-    myservo.write(180);
-    delay(1000);
-     
-  }
-  Serial.print(acc[1]);
-  Serial.print(";");
-  Serial.print(acc[2]);
-  Serial.print(";");
+  XBee.print(acc[0]);
+  XBee.print(";"); 
+  XBee.print(acc[1]);
+  XBee.print(";");
+  XBee.print(acc[2]);
+  XBee.print(";");
   
   return;
 }
@@ -160,8 +168,8 @@ float readTemp() {
   Wire.requestFrom(MPU_ADDR,2);
   Temp= Wire.read() <<8 | Wire.read();
   tempC = Temp/340. + 36.53;
-  Serial.print(tempC); 
-  Serial.print(";");
+  XBee.print(tempC); 
+  XBee.print(";");
   return tempC; 
 }
 
@@ -178,31 +186,87 @@ void getGyro() {
   gyro[1] = tmp / GYR_SCALE_FACT;
   tmp=Wire.read()<<8|Wire.read();
   gyro[2] = tmp / GYR_SCALE_FACT;
-  Serial.print(gyro[0]);
-  Serial.print(";");
-  Serial.print(gyro[1]);
-  Serial.print(";");
-  Serial.print(gyro[2]);
-  Serial.print(";");
+  XBee.print(gyro[0]);
+  XBee.print(";");
+  XBee.print(gyro[1]);
+  XBee.print(";");
+  XBee.print(gyro[2]);
+  XBee.print(";");
   return;
 }
 
-void getBaro() {
-    /*** Get Baro readings ***/
-  Serial.print(bme.readTemperature());
-  Serial.print(";");
-  Serial.print(bme.readPressure());
-  Serial.print(";");
-  Serial.print(bme.readAltitude(REF_PRESSURE));
-  Serial.print(";");// this should be adjusted to your local forcase
+float getBaro() {
+  /*** Get Baro readings ***/
+  XBee.print(bme.readTemperature());
+  baro[0] = bme.readTemperature();
+  XBee.print(";");
+  XBee.print(bme.readPressure());
+  XBee.print(";");
+  XBee.print(bme.readAltitude(REF_PRESSURE));
+  baro[2] = bme.readAltitude(REF_PRESSURE);
+  XBee.print(";");// this should be adjusted to your local forcase
+  
 }
 
 void getTmpLM35() {
   /*** Get and print temperature ***/
   vout=analogRead(TEMPLM35_SENSOR);
-  vout=(vout*500)/1023;
-  tempc=vout; // Storing value in Degree Celsius
-  Serial.print(tempc);
-  Serial.println(";");
+  tempc=vout*0.5966-66.2;
+  XBee.print(tempc);
+  XBee.print(";");
 }
+
+void servoRotate(int servo_angle) { 
+   /*** Rotate the server ***/
+   initServo();
+   delay(1000);
+   myservo.write(servo_angle);
+   delay(1000);
+   myservo.detach();
+}
+
+void start_timer(int servo_angle){
+    /** Start position ***/ 
+    start_time = millis();
+    servoRotate(servo_angle);
+    delay(1000);
+    XBee.println("***** Servos in position *****");
+    servo_starting_position = true;
+}
+
+void xBeeMenu() { 
+  /** Controls the Servos **/
+  if (XBee.available()){
+    char c = XBee.read();
+    switch (c){
+    // master case 
+    case 'a': 
+      Serial.println("Begin Confirguration");
+      servo_angle = 0; 
+      start_timer(servo_angle);
+      break;
+    case 'b':
+      Serial.println("Start at 0");
+      servo_angle = 0; 
+      servoRotate(servo_angle);
+      break;
+    case 'c':
+      Serial.println("Start at 90");
+      servo_angle = 90; 
+      servoRotate(servo_angle);
+      break;
+    case 'd':
+      Serial.println("Start at 180");
+      servo_angle = 180; 
+      servoRotate(servo_angle);
+      break;
+    case 'e':
+      Serial.println("Forced Ejection");
+      servo_angle = 180; 
+      servoRotate(servo_angle);
+      break;
+    }
+  }
+}
+
 
