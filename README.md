@@ -2,7 +2,7 @@
 January Course for CatSat Launch
 https://www.arduino.cc/en/uploads/Main/ArduinoNano30Schematic.pdf
 
-
+![final_image](https://github.com/lberger1993/CatSat_TU_Repo/blob/master/block_diagram/finashot.JPG)
 # General Setup 
 
 Libraries required 
